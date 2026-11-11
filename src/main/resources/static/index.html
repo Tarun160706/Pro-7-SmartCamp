@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Campus Service Management System</title>
+  <meta name="description" content="Campus service-request management platform with dedicated portals for Students, Workers, and Administrators.">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+
+  <!-- ============================================================== -->
+  <!-- 1. AUTHENTICATION SCREEN (Shown when logged out)               -->
+  <!-- ============================================================== -->
+  <div id="auth-screen" class="auth-screen-container">
+    <div class="auth-modal-card">
+      <div class="auth-brand">
+        <div class="auth-logo">🏛️</div>
+        <h2>SmartCampus ServiceDesk</h2>
+        <p>Unified Facility Management & Resolution Portal</p>
+      </div>
+
+      <!-- Role Selector Tabs -->
+      <div class="auth-role-tabs">
+        <button class="role-tab active" data-role="STUDENT">
+          <span>🎓</span> Student
+        </button>
+        <button class="role-tab" data-role="WORKER">
+          <span>🛠️</span> Worker
+        </button>
+        <button class="role-tab" data-role="ADMIN">
+          <span>👑</span> Admin
+        </button>
+      </div>
+
+      <!-- Quick Demo Credentials Fill -->
+      <div class="quick-demo-box">
+        <span class="demo-tag">Quick Fill Demo:</span>
+        <button id="quick-fill-btn" class="btn btn-secondary btn-small">
+          Fill Student: tarun@campus.edu
+        </button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="login-form" class="auth-form">
+        <div class="form-group">
+          <label for="login-email" class="form-label">Email Address</label>
+          <input type="email" id="login-email" class="form-input" placeholder="name@campus.edu" required>
+        </div>
+
+        <div class="form-group">
+          <label for="login-password" class="form-label">Password</label>
+          <input type="password" id="login-password" class="form-input" placeholder="••••••••" required>
+        </div>
+
+        <button type="submit" id="login-submit-btn" class="btn btn-primary btn-large btn-block">
+          <span>Secure Sign In</span>
+        </button>
+      </form>
+
+      <div class="auth-security-note">
+        🔒 Passwords verified via BCrypt salted hashes & Role-Based Access Control
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- 2. MAIN APPLICATION (Shown after login)                        -->
+  <!-- ============================================================== -->
+  <div id="app-screen" style="display: none;">
+    <!-- App Header -->
+    <header class="app-header">
+      <div class="header-container">
+        <div class="brand">
+          <div class="brand-icon">🏛️</div>
+          <div>
+            <h1 class="brand-title">SmartCampus <span id="portal-role-badge" class="brand-badge">ADMIN</span></h1>
+            <p id="portal-subtitle" class="brand-subtitle">Facility & Maintenance Resolution Hub</p>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <!-- Active User Profile Chip -->
+          <div class="user-chip">
+            <div id="user-avatar" class="user-avatar">👤</div>
+            <div class="user-details">
+              <span id="user-display-name" class="user-name">Administrator</span>
+              <span id="user-display-email" class="user-role">admin@campus.edu</span>
+            </div>
+          </div>
+
+          <button id="logout-btn" class="btn btn-secondary btn-small">
+            <span>🚪 Logout</span>
+          </button>
+
+          <!-- Theme Toggle -->
+          <button id="theme-toggle-btn" class="icon-btn" title="Toggle Theme">
+            <span id="theme-icon">🌙</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Dynamic Role-Based Navigation Tabs -->
+      <nav class="nav-tabs">
+        <div class="nav-container" id="nav-tabs-container">
+          <!-- Injected dynamically based on role -->
+        </div>
+      </nav>
+    </header>
+
+    <main class="main-content">
+      <!-- KPI Metrics (For Admin & Staff) -->
+      <section id="kpi-banner" class="kpi-grid">
+        <div class="kpi-card" data-status="ALL">
+          <div class="kpi-icon-box blue">📑</div>
+          <div class="kpi-data">
+            <div class="kpi-value" id="kpi-total">0</div>
+            <div class="kpi-label">Total Requests</div>
+          </div>
+        </div>
+        <div class="kpi-card" data-status="PENDING">
+          <div class="kpi-icon-box amber">⏳</div>
+          <div class="kpi-data">
+            <div class="kpi-value" id="kpi-pending">0</div>
+            <div class="kpi-label">Pending Triage</div>
+          </div>
+        </div>
+        <div class="kpi-card" data-status="IN_PROGRESS">
+          <div class="kpi-icon-box purple">⚙️</div>
+          <div class="kpi-data">
+            <div class="kpi-value" id="kpi-in-progress">0</div>
+            <div class="kpi-label">In Progress</div>
+          </div>
+        </div>
+        <div class="kpi-card" data-status="WORKER_COMPLETED">
+          <div class="kpi-icon-box cyan">🔔</div>
+          <div class="kpi-data">
+            <div class="kpi-value" id="kpi-worker-completed">0</div>
+            <div class="kpi-label">Awaiting Admin Reply</div>
+          </div>
+        </div>
+        <div class="kpi-card" data-status="RESOLVED">
+          <div class="kpi-icon-box green">✅</div>
+          <div class="kpi-data">
+            <div class="kpi-value" id="kpi-resolved">0</div>
+            <div class="kpi-label">Resolved / Closed</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 1: TICKETS LIST (All Tickets for Admin / My Tickets for Student & Worker) -->
+      <section id="tickets-view" class="tab-page active">
+        <div class="toolbar-card">
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="search-input" placeholder="Search by title, description, or campus location...">
+            <button id="clear-search-btn" class="clear-btn" style="display:none;">✕</button>
+          </div>
+
+          <div class="filter-controls">
+            <div class="filter-group">
+              <label for="filter-status">Status:</label>
+              <select id="filter-status" class="filter-select">
+                <option value="">All Statuses</option>
+                <option value="PENDING">PENDING</option>
+                <option value="ASSIGNED">ASSIGNED</option>
+                <option value="IN_PROGRESS">IN_PROGRESS</option>
+                <option value="WORKER_COMPLETED">WORKER_COMPLETED</option>
+                <option value="RESOLVED">RESOLVED</option>
+                <option value="CLOSED">CLOSED</option>
+                <option value="REJECTED">REJECTED</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label for="filter-category">Category:</label>
+              <select id="filter-category" class="filter-select">
+                <option value="">All Categories</option>
+                <option value="ELECTRICAL">⚡ Electrical</option>
+                <option value="INTERNET">🌐 Internet/Wi-Fi</option>
+                <option value="FURNITURE">🪑 Furniture</option>
+                <option value="CLEANING">🧹 Cleaning</option>
+                <option value="OTHER">🔧 Other Issue</option>
+              </select>
+            </div>
+
+            <button id="refresh-tickets-btn" class="btn btn-secondary">
+              <span>🔄 Refresh</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="tickets-container" class="tickets-grid">
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading tickets...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 2: REPORT NEW ISSUE (Student Only) -->
+      <section id="create-view" class="tab-page">
+        <div class="form-container">
+          <div class="form-header">
+            <h2>Report a Campus Facility Problem</h2>
+            <p>Submit an issue. The administration will triage and assign a specialist worker.</p>
+          </div>
+
+          <form id="create-ticket-form" class="service-form" novalidate>
+            <div class="form-group">
+              <label class="form-label">Issue Category <span class="required">*</span></label>
+              <div class="category-cards-grid">
+                <label class="category-card active">
+                  <input type="radio" name="category" value="ELECTRICAL" checked>
+                  <div class="cat-icon">⚡</div>
+                  <div class="cat-title">Electrical</div>
+                  <div class="cat-desc">Projectors, wiring, AC, lights</div>
+                </label>
+                <label class="category-card">
+                  <input type="radio" name="category" value="INTERNET">
+                  <div class="cat-icon">🌐</div>
+                  <div class="cat-title">Internet / Wi-Fi</div>
+                  <div class="cat-desc">Wi-Fi routers, LAN cables, drops</div>
+                </label>
+                <label class="category-card">
+                  <input type="radio" name="category" value="FURNITURE">
+                  <div class="cat-icon">🪑</div>
+                  <div class="cat-title">Furniture</div>
+                  <div class="cat-desc">Desks, armrests, whiteboards</div>
+                </label>
+                <label class="category-card">
+                  <input type="radio" name="category" value="CLEANING">
+                  <div class="cat-icon">🧹</div>
+                  <div class="cat-title">Cleaning</div>
+                  <div class="cat-desc">Sanitation, water spills</div>
+                </label>
+                <label class="category-card">
+                  <input type="radio" name="category" value="OTHER">
+                  <div class="cat-icon">🔧</div>
+                  <div class="cat-title">Other Issue</div>
+                  <div class="cat-desc">General hardware & lab tools</div>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Urgency & Priority <span class="required">*</span></label>
+              <div class="priority-selector">
+                <label class="priority-opt low">
+                  <input type="radio" name="priority" value="LOW">
+                  <span>🟢 Low (Routine)</span>
+                </label>
+                <label class="priority-opt medium active">
+                  <input type="radio" name="priority" value="MEDIUM" checked>
+                  <span>🟡 Medium (Classroom)</span>
+                </label>
+                <label class="priority-opt high">
+                  <input type="radio" name="priority" value="HIGH">
+                  <span>🟠 High (Disruptive)</span>
+                </label>
+                <label class="priority-opt critical">
+                  <input type="radio" name="priority" value="CRITICAL">
+                  <span>🔴 Critical (Urgent Outage)</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="ticket-title" class="form-label">Brief Title <span class="required">*</span></label>
+              <input type="text" id="ticket-title" class="form-input" placeholder="e.g. Room 302 Projector Display flickering" required>
+            </div>
+
+            <div class="form-group">
+              <label for="ticket-location" class="form-label">Campus Location <span class="required">*</span></label>
+              <input type="text" id="ticket-location" class="form-input" placeholder="e.g. Academic Block A - Room 302" required>
+              <div class="location-chips">
+                <span class="chip" data-loc="Academic Block A - Room 302">Academic Block A - Room 302</span>
+                <span class="chip" data-loc="IT Building - CS Lab 5">IT Building - CS Lab 5</span>
+                <span class="chip" data-loc="Central Library - 2nd Floor">Central Library - 2nd Floor</span>
+                <span class="chip" data-loc="Campus Cafeteria - Block C">Campus Cafeteria - Block C</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="ticket-description" class="form-label">Detailed Description <span class="required">*</span></label>
+              <textarea id="ticket-description" class="form-textarea" rows="4" placeholder="Describe the symptom in detail..." required></textarea>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" id="submit-ticket-btn" class="btn btn-primary btn-large">
+                <span>🚀 Submit Service Request</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- VIEW 3: ADMIN ACCOUNT MANAGEMENT & CSV BULK UPLOAD (Admin Only) -->
+      <section id="accounts-view" class="tab-page">
+        <div class="section-header">
+          <div>
+            <h2>Campus Accounts & Identity Management</h2>
+            <p>Admin control center: Create individual student/worker accounts or bulk upload students via CSV.</p>
+          </div>
+          <div class="header-btns">
+            <button id="add-student-btn" class="btn btn-primary">+ Create Student</button>
+            <button id="add-worker-btn" class="btn btn-secondary">+ Create Worker</button>
+          </div>
+        </div>
+
+        <!-- Bulk Student Upload Card -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <div class="admin-card-icon">📂</div>
+            <div>
+              <h3>Bulk Student CSV Import & Password Generator</h3>
+              <p>Upload student data. The system automatically creates accounts, generates secure passwords, and prepares an exportable credentials file.</p>
+            </div>
+          </div>
+
+          <div class="csv-upload-box">
+            <div class="csv-input-area">
+              <label class="form-label">Paste CSV Content (Format: <code>Name, Email, Department, Year</code>):</label>
+              <textarea id="csv-content-input" class="form-textarea" rows="4" placeholder="Aravind Swamy, aravind@campus.edu, Computer Science, 3&#10;Kavitha Raj, kavitha@campus.edu, Information Technology, 2&#10;Vikas Nair, vikas@campus.edu, Electrical Engineering, 4"></textarea>
+            </div>
+
+            <div class="csv-actions">
+              <button id="process-csv-btn" class="btn btn-primary">
+                <span>⚡ Process & Generate Logins</span>
+              </button>
+              <a id="export-csv-btn" href="/api/admin/export-credentials" class="btn btn-secondary" download="student_credentials.csv">
+                <span>📥 Download Credentials CSV</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Credentials Table -->
+          <div id="credentials-table-box" style="margin-top: 1.5rem;">
+            <h4>Generated Student Login Credentials Roster</h4>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Student ID</th>
+                    <th>Full Name</th>
+                    <th>Email Address</th>
+                    <th>Department</th>
+                    <th>Year</th>
+                    <th>Generated Password</th>
+                  </tr>
+                </thead>
+                <tbody id="credentials-tbody">
+                  <tr><td colspan="6" style="text-align: center; color: var(--text-dim);">No recent bulk credentials generated yet.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Registered Users Accounts Table -->
+        <div class="admin-card" style="margin-top: 1.5rem;">
+          <h3>All Registered User Accounts</h3>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>User ID</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Assigned Role</th>
+                  <th>Profile Link</th>
+                </tr>
+              </thead>
+              <tbody id="users-tbody">
+                <!-- Rendered via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 4: ANALYTICS (Admin Only) -->
+      <section id="analytics-view" class="tab-page">
+        <div class="analytics-grid">
+          <div class="analytics-card">
+            <h3>Breakdown by Category</h3>
+            <div id="analytics-category-bars" class="analytics-bars"></div>
+          </div>
+          <div class="analytics-card">
+            <h3>Breakdown by Status</h3>
+            <div id="analytics-status-bars" class="analytics-bars"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODALS                                                         -->
+  <!-- ============================================================== -->
+
+  <!-- Modal 1: Assign Technician (Admin Only) -->
+  <div id="assign-modal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Assign Worker to Ticket</h3>
+        <button class="modal-close" data-close="assign-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <p id="assign-ticket-info" class="modal-subtitle">Ticket #1</p>
+        <div class="form-group">
+          <label for="assign-tech-select" class="form-label">Select Campus Worker:</label>
+          <select id="assign-tech-select" class="form-input"></select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-close="assign-modal">Cancel</button>
+        <button id="confirm-assign-btn" class="btn btn-primary">Allocate Task</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Worker Notify Admin of Completion (Worker Only) -->
+  <div id="worker-complete-modal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Notify Admin: Work Finished</h3>
+        <button class="modal-close" data-close="worker-complete-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <p id="worker-ticket-info" class="modal-subtitle">Ticket #1</p>
+        <div class="form-group">
+          <label for="worker-notes-input" class="form-label">Work Summary / Repair Notes <span class="required">*</span></label>
+          <textarea id="worker-notes-input" class="form-textarea" rows="3" placeholder="Explain the fix (e.g. Replaced capacitor and tested projector HDMI input)..." required></textarea>
+        </div>
+        <div class="note-box">
+          🔔 This will update status to <code>WORKER_COMPLETED</code> and notify the Admin to review and reply to the student.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-close="worker-complete-modal">Cancel</button>
+        <button id="confirm-worker-complete-btn" class="btn btn-success">Notify Admin</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Admin Review & Reply to Student as Completed (Admin Only) -->
+  <div id="admin-resolve-modal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Verify Resolution & Reply to Student</h3>
+        <button class="modal-close" data-close="admin-resolve-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <p id="resolve-ticket-info" class="modal-subtitle">Ticket #1</p>
+        <div class="admin-review-box">
+          <strong>Worker Notes:</strong>
+          <p id="review-worker-notes" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">No notes</p>
+        </div>
+        <div class="form-group" style="margin-top: 1rem;">
+          <label for="admin-remarks-input" class="form-label">Reply Remarks to Student <span class="required">*</span></label>
+          <textarea id="admin-remarks-input" class="form-textarea" rows="3" placeholder="e.g. Facility verified by Admin. Projector is functional and classroom is ready for lectures." required></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-close="admin-resolve-modal">Cancel</button>
+        <button id="confirm-admin-resolve-btn" class="btn btn-primary">Mark Completed & Reply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: Create Student (Admin Only) -->
+  <div id="create-student-modal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Create Student Account</h3>
+        <button class="modal-close" data-close="create-student-modal">✕</button>
+      </div>
+      <form id="create-student-form">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Full Name <span class="required">*</span></label>
+            <input type="text" id="cs-name" class="form-input" placeholder="e.g. Ananya Sen" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address <span class="required">*</span></label>
+            <input type="email" id="cs-email" class="form-input" placeholder="e.g. ananya@campus.edu" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Department</label>
+            <input type="text" id="cs-dept" class="form-input" placeholder="e.g. Computer Science" value="Computer Science">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Year of Study</label>
+            <input type="number" id="cs-year" class="form-input" min="1" max="5" value="3">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password (Leave blank to auto-generate)</label>
+            <input type="text" id="cs-password" class="form-input" placeholder="Auto-generated if empty">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close="create-student-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 5: Create Worker (Admin Only) -->
+  <div id="create-worker-modal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Create Worker Account</h3>
+        <button class="modal-close" data-close="create-worker-modal">✕</button>
+      </div>
+      <form id="create-worker-form">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Full Name <span class="required">*</span></label>
+            <input type="text" id="cw-name" class="form-input" placeholder="e.g. Murugan K" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address <span class="required">*</span></label>
+            <input type="email" id="cw-email" class="form-input" placeholder="e.g. murugan.tech@campus.edu" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Specialization Domain</label>
+            <input type="text" id="cw-spec" class="form-input" placeholder="e.g. Plumbing & Sanitation" value="Plumbing & Sanitation">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="text" id="cw-password" class="form-input" placeholder="Worker@123" value="Worker@123">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close="create-worker-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Worker</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Frontend Logic -->
+  <script src="app.js"></script>
+</body>
+</html>

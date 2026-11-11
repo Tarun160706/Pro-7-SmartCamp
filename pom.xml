@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- ============================================================
+         PARENT: Spring Boot Starter Parent
+         This is the "parent" POM that Spring Boot provides.
+         It pre-configures default versions for all Spring dependencies
+         so you don't have to specify versions for each dependency manually.
+         Think of it as inheriting sensible defaults.
+         ============================================================ -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.2.5</version>
+        <relativePath/> <!-- lookup parent from Maven Central repository -->
+    </parent>
+
+    <!-- ============================================================
+         PROJECT COORDINATES
+         groupId    = Your organization (like a package name)
+         artifactId = Your project name (used as the JAR file name)
+         version    = Current version of your project
+         ============================================================ -->
+    <groupId>com.campus</groupId>
+    <artifactId>smart-campus-service-management</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>Smart Campus Service Management</name>
+    <description>A campus service-request management system for students to report issues and administrators to track resolutions</description>
+
+    <!-- ============================================================
+         PROPERTIES
+         java.version = Tells the compiler to use Java 17 syntax
+         ============================================================ -->
+    <properties>
+        <java.version>17</java.version>
+    </properties>
+
+    <!-- ============================================================
+         DEPENDENCIES
+         These are the external libraries your project needs.
+         Spring Boot "starters" are bundles of related dependencies.
+         ============================================================ -->
+    <dependencies>
+
+        <!-- ========================================
+             1. SPRING BOOT STARTER WEB
+             ========================================
+             What it gives you:
+             - Embedded Tomcat server (no need to install a separate server)
+             - Spring MVC framework (for building REST APIs)
+             - Jackson library (for converting Java objects to JSON and back)
+
+             Why we need it:
+             - We are building a REST API. This starter provides everything
+               needed to handle HTTP requests (GET, POST, PUT, DELETE)
+               and return JSON responses.
+
+             Interview tip:
+             Q: "What does spring-boot-starter-web include?"
+             A: "It includes an embedded Tomcat server, Spring MVC for
+                 handling HTTP requests, and Jackson for JSON serialization."
+             ======================================== -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- ========================================
+             2. SPRING BOOT STARTER DATA JPA
+             ========================================
+             What it gives you:
+             - Spring Data JPA (simplifies database operations)
+             - Hibernate (the ORM - Object Relational Mapping framework)
+             - HikariCP (connection pool for efficient DB connections)
+
+             Why we need it:
+             - Instead of writing raw SQL queries, we use JPA to map
+               Java objects (entities) directly to database tables.
+             - Spring Data JPA auto-generates common queries like
+               findById(), findAll(), save(), delete().
+
+             Interview tip:
+             Q: "What is JPA and why use it?"
+             A: "JPA is the Java Persistence API - a specification for
+                 ORM. Hibernate implements JPA. It lets us work with
+                 Java objects instead of writing SQL. Spring Data JPA
+                 further simplifies this by auto-generating repository
+                 methods from method names."
+             ======================================== -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <!-- ========================================
+             3. POSTGRESQL DRIVER
+             ========================================
+             What it gives you:
+             - The JDBC driver that lets Java talk to PostgreSQL
+
+             Why we need it:
+             - Spring Data JPA / Hibernate need a driver to connect
+               to the actual database. This is the PostgreSQL-specific driver.
+             - scope=runtime means it's only needed when running the app,
+               not at compile time.
+
+             Interview tip:
+             Q: "Why is the PostgreSQL dependency marked as runtime?"
+             A: "Because our Java code never directly imports PostgreSQL
+                 classes. We code against JPA interfaces. The driver is
+                 only needed at runtime when Hibernate actually connects
+                 to the database."
+             ======================================== -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- ========================================
+             4. SPRING BOOT STARTER VALIDATION
+             ========================================
+             What it gives you:
+             - Jakarta Bean Validation (javax.validation successor)
+             - Hibernate Validator (the implementation)
+
+             Why we need it:
+             - To validate user input automatically using annotations
+               like @NotBlank, @Email, @NotNull on our DTOs.
+             - Instead of writing manual if-else checks, we declare
+               validation rules as annotations.
+
+             Interview tip:
+             Q: "How do you validate user input in Spring Boot?"
+             A: "I use the spring-boot-starter-validation which provides
+                 Jakarta Bean Validation annotations like @NotBlank,
+                 @Email, @NotNull. I annotate DTO fields and use
+                 @Valid in the controller to trigger validation."
+             ======================================== -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- ========================================
+             5. SPRING BOOT STARTER TEST (for testing)
+             ========================================
+             What it gives you:
+             - JUnit 5, Mockito, Spring Test utilities
+
+             Why we need it:
+             - For writing unit tests and integration tests.
+             - scope=test means this is ONLY available during testing,
+               not included in the final production JAR.
+             ======================================== -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- ========================================
+             6. SPRING SECURITY CRYPTO (BCrypt Hashing)
+             ========================================
+             Provides BCryptPasswordEncoder for secure password hashing
+             without pulling in full SecurityFilterChain overhead.
+             ======================================== -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-crypto</artifactId>
+        </dependency>
+
+    </dependencies>
+
+    <!-- ============================================================
+         BUILD PLUGINS
+         The Spring Boot Maven Plugin allows you to:
+         - Package the app as an executable JAR with embedded Tomcat
+         - Run the app using: ./mvnw spring-boot:run
+         ============================================================ -->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
