@@ -32,4 +32,4 @@ The application follows a standard flow from the `@RestController` layer down th
 
 ## 👨‍💻 Author
 
-- **Tarun Kumar** — Computer Science & Engineering student preparing for Java backend engineering roles.
+- **Tarun R** — Computer Science & Engineering student preparing for Java backend engineering roles.
